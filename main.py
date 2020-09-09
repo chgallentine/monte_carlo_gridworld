@@ -2,7 +2,7 @@
 # @Author: Charlie Gallentine
 # @Date:   2020-09-02 16:39:13
 # @Last Modified by:   Charlie Gallentine
-# @Last Modified time: 2020-09-03 16:16:31
+# @Last Modified time: 2020-09-09 11:08:09
 
 import numpy as np 
 import operator 
@@ -78,14 +78,11 @@ class Agent:
 		self.average_rewards = {}
 
 
-def learn_policy(agent,env,discount=0.8):
-	num_iterations = 10
-	num_episodes = 100
+def learn_policy(agent,env,n_episodes,n_iterations,discount=0.8,policy_exploration=0.05):
 
+	for i in range(n_iterations):
 
-	for i in range(num_iterations):
-
-		for j in range(num_episodes):
+		for j in range(n_episodes):
 
 			agent.episodic_policy = {}
 
@@ -111,7 +108,14 @@ def learn_policy(agent,env,discount=0.8):
 				if agent.state not in agent.policy:
 					action = agent.actions[np.random.randint(len(agent.actions))]
 				else:
-					action = agent.policy[agent.state]
+					explore = True if np.random.random() < policy_exploration else False
+
+					if explore:
+						# Explore
+						action = agent.actions[np.random.randint(len(agent.actions))]
+					else:
+						# Exploit
+						action = agent.policy[agent.state]
 
 				# Take step according to policy, determine reward and if in terminal state
 				new_state,reward,terminated = env.step(agent.state,action)
@@ -160,18 +164,25 @@ def learn_policy(agent,env,discount=0.8):
 
 
 rows = 6
-cols = 6
+cols = 9
+
+n_episodes = 10
+n_iterations = 100
+discount = 0.8
+exploration_rate = 0.05
 
 env = Env(rows,cols)
 agent = Agent()
 
 print("Terminal: %d" % (env.terminal))
-learn_policy(agent,env)
 
-dirs = np.array([agent.policy[i].rjust(5) for i in range(rows*cols)])
+learn_policy(agent,env,n_episodes,n_iterations,discount=discount,policy_exploration=exploration_rate)
+
+directions = np.array([agent.policy[i].rjust(5) for i in range(rows*cols)])
 states = np.array([str(i).rjust(5) for i in range(rows*cols)])
+
 print(np.reshape(states,(rows,cols)))
-print(np.reshape(dirs,(rows,cols)))
+print(np.reshape(directions,(rows,cols)))
 
 
 
